@@ -58,6 +58,8 @@ pub fn start_websocket_session<T: Read + Write>(mut stream: T) {
                                     let msg = inbound_message.serialize();
                                     // echo message back
                                     let _ = stream.write_all(&msg);
+                                    // clear message buffer
+                                    inbound_message.frames.clear();
                                 }
                             }
                         }
