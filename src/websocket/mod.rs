@@ -1,13 +1,17 @@
-use std::io::{Read, Write};
+use smol::{io::AsyncWriteExt, net::TcpStream, prelude::*};
 mod frame;
 use frame::{Message, OpCode, StatusCode, build_close_frame_payload, build_message, parse_frame};
 
-pub fn start_websocket_session<T: Read + Write>(mut stream: T) {
+pub async fn start_websocket_session(mut stream: TcpStream) {
+    println!(
+        "Websocket session for {} started!",
+        stream.peer_addr().unwrap()
+    );
     let mut inbound_message = Message { frames: vec![] };
     let mut buf = [0; 1024]; // 1kb buffer
 
     loop {
-        match stream.read(&mut buf) {
+        match stream.read(&mut buf).await {
             Ok(0) => {
                 println!("Client disconnected");
                 break;
@@ -19,15 +23,15 @@ pub fn start_websocket_session<T: Read + Write>(mut stream: T) {
                             OpCode::Ping | OpCode::Pong => {
                                 let mut msg = build_message(OpCode::Pong, &frame.payload);
                                 let msg = msg.serialize();
-                                let _ = stream.write_all(&msg);
+                                let _ = stream.write_all(&msg).await;
                             }
                             OpCode::Close => {
                                 // dispatch buffered message
                                 let msg = inbound_message.serialize();
-                                let _ = stream.write_all(&msg);
+                                let _ = stream.write_all(&msg).await;
                                 // echo close frame back to client
                                 let msg = build_message(OpCode::Close, &frame.payload).serialize();
-                                let _ = stream.write_all(&msg);
+                                let _ = stream.write_all(&msg).await;
                                 // break loop and end session
                                 break;
                             }
@@ -43,7 +47,7 @@ pub fn start_websocket_session<T: Read + Write>(mut stream: T) {
                                 )
                                 .serialize();
                                 // send back close frame
-                                let _ = stream.write_all(&msg);
+                                let _ = stream.write_all(&msg).await;
                                 // break loop and end session
                                 break;
                             }
@@ -57,7 +61,7 @@ pub fn start_websocket_session<T: Read + Write>(mut stream: T) {
                                 if is_fin {
                                     let msg = inbound_message.serialize();
                                     // echo message back
-                                    let _ = stream.write_all(&msg);
+                                    let _ = stream.write_all(&msg).await;
                                     // clear message buffer
                                     inbound_message.frames.clear();
                                 }
@@ -73,4 +77,8 @@ pub fn start_websocket_session<T: Read + Write>(mut stream: T) {
             }
         }
     }
+    println!(
+        "Websocket session for {} ended!",
+        stream.peer_addr().unwrap()
+    );
 }

@@ -12,7 +12,7 @@ impl Message {
     pub fn serialize(&mut self) -> Vec<u8> {
         let mut output = vec![];
 
-        for mut frame in self.frames.clone() {
+        for frame in &mut self.frames {
             output.push(frame.serialize());
         }
 
@@ -20,7 +20,7 @@ impl Message {
     }
 }
 
-#[derive(Clone)]
+// #[derive(Clone)]
 pub struct Frame {
     pub fin: bool,
     pub opcode: OpCode,

@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 sha1 = "0.10.6"
 base64 = "0.22.1"
+smol = "2.0.2"
