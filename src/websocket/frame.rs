@@ -1,9 +1,6 @@
 // https://datatracker.ietf.org/doc/html/rfc6455#section-5
 // https://websocket.org/guides/websocket-protocol/#data-framing
 
-// Websocket frame:
-// [FIN][RSV1][RSV2][RSV3][OpCode(4)][MASK][PayloadLen(7)][ExtendedLen(16/64?)][MaskingKey(32)?][PayloadData...]
-
 pub struct Message {
     pub frames: Vec<Frame>,
 }
@@ -211,5 +208,3 @@ pub fn build_close_frame_payload(code: StatusCode, reason: &str) -> Vec<u8> {
 
     payload
 }
-
-// https://datatracker.ietf.org/doc/html/rfc6455#section-6.1
